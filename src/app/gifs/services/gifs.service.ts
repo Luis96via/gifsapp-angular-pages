@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { SearchResponse, Gif } from '../interfaces/gifs.interfaces';
+import { delay } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
 export class GifsService {
@@ -8,7 +9,7 @@ export class GifsService {
   public gifList: Gif[] = [];
 
   private _tagsHistory: string[] = [];
-  private apiKey:       string = 'dGMJW12nlHSz46O3sy81BZFryoPshmUk';
+  private apiKey:       string = '9NnuzDstTg35BiOyIzBGt1a8uxUMhdzf';
   private serviceUrl:   string = 'https://api.giphy.com/v1/gifs';
 
   constructor( private http: HttpClient ) {
@@ -46,29 +47,23 @@ export class GifsService {
   }
 
 
-  searchTag( tag: string ):void {
-    if ( tag.length === 0 ) return;
+  searchTag(tag: string): void {
+    if (tag.length === 0) return;
     this.organizeHistory(tag);
-
+  
     const params = new HttpParams()
-      .set('api_key', this.apiKey )
-      .set('limit', '10' )
-      .set('q', tag )
-
-    this.http.get<SearchResponse>(`${ this.serviceUrl }/search`, { params })
-      .subscribe( resp => {
-
+      .set('api_key', this.apiKey)
+      .set('limit', '10')
+      .set('q', tag);
+  
+    this.gifList = []; // Limpia la lista actual
+  
+    this.http.get<SearchResponse>(`${this.serviceUrl}/search`, { params })
+      .pipe(
+        delay(0)
+      )
+      .subscribe(resp => {
         this.gifList = resp.data;
-        // console.log({ gifs: this.gifList });
-
       });
-
-
-
-
-
-
   }
-
-
 }

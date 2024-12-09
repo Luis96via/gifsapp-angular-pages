@@ -1,5 +1,7 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
 import { GifsService } from '../../services/gifs.service';
+import { debounceTime, distinctUntilChanged, fromEvent, map, filter } from 'rxjs';
+
 
 @Component({
   selector: 'gifs-search-box',
@@ -8,29 +10,27 @@ import { GifsService } from '../../services/gifs.service';
     <input type="text"
       class="form-control"
       placeholder="Buscar gifs..."
-      (keyup.enter)="searchTag()"
       #txtTagInput
     >
   `
 })
 
-export class SearchBoxComponent  {
-
+export class SearchBoxComponent implements AfterViewInit {
   @ViewChild('txtTagInput')
   public tagInput!: ElementRef<HTMLInputElement>;
 
+  constructor(private gifsService: GifsService) {}
 
-  constructor( private gifsService: GifsService ) { }
-
-
-  // searchTag( newTag: string ) {
-  searchTag() {
-    const newTag = this.tagInput.nativeElement.value;
-
-    this.gifsService.searchTag(newTag);
-
-    this.tagInput.nativeElement.value = '';
-
+  ngAfterViewInit() {
+    fromEvent(this.tagInput.nativeElement, 'keyup')
+      .pipe(
+        map((event: any) => event.target.value),
+        filter((value: string) => value.length >= 3),
+        debounceTime(900),
+        distinctUntilChanged()
+      )
+      .subscribe((value: string) => {
+        this.gifsService.searchTag(value);
+      });
   }
-
 }
